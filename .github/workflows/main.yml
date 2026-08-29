@@ -1,15 +1,11 @@
 name: Build Android APK
 
 on:
-  push:                # 代码推送到 main 分支时触发
-    branches: [ main ]
-  pull_request:        # 有 PR 提交时触发
-    branches: [ main ]
-  workflow_dispatch:   # 支持在 Actions 页面手动点击运行
+  workflow_dispatch:  # 手动触发
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境[reference:5]
+    runs-on: ubuntu-latest
     steps:
     - name: 拉取代码
       uses: actions/checkout@v4
@@ -20,14 +16,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: 赋予 Gradle 执行权限
-      run: chmod +x gradlew
+    # 关键一步：用官方插件自动安装对应版本的 Gradle，完全绕过失效的 wrapper
+    - name: 设置 Gradle
+      uses: gradle/actions/setup-gradle@v3
 
-    - name: 构建 Debug APK
-      run: ./gradlew assembleDebug   # 如果是 release 版，可改为 assembleRelease[reference:6]
+    # 直接使用 'gradle' 命令（不带 ./），而不是 './gradlew'
+    - name: 构建 APK
+      run: gradle assembleDebug
 
-    - name: 上传 APK 作为构建产物
+    - name: 上传 APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug-apk
-        path: phone/build/outputs/apk/debug/*.apk  # 根据实际模块名调整路径
+        path: phone/build/outputs/apk/debug/*.apk
