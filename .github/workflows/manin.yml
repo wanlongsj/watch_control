@@ -1,0 +1,29 @@
+name: Build Watch APK Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 拉取代码
+      uses: actions/checkout@v4
+
+    - name: 设置 JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: 设置 Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: 只构建手表模块
+      run: gradle :watch:assembleDebug
+
+    - name: 上传手表 APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: watch-apk
+        path: watch/build/outputs/apk/debug/*.apk
